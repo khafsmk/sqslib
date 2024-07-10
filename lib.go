@@ -3,18 +3,21 @@ package event
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/google/uuid"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // EventMetadata contains optional metadata fields for the event
 type EventMetadata struct {
-	TraceID      	   string `json:"trace_id,omitempty"`
+	TraceID            string `json:"trace_id,omitempty"`
 	Domain             string `json:"domain,omitempty"`
 	IdempotencyKey     string `json:"idempotency_key,omitempty"`
 	SequenceID         string `json:"sequence_id,omitempty"`
@@ -41,9 +44,7 @@ type BasePublisher struct{}
 func (b *BasePublisher) ensureTraceAndIdempotencyKey(ctx context.Context, input *EventInput) {
 	if input.TraceID == "" {
 		if span, ok := tracer.SpanFromContext(ctx); ok {
-			if spanContext, ok := span.Context().(ddtrace.SpanContext); ok {
-				input.TraceID = spanContext.TraceID().String()
-			}
+			input.TraceID = fmt.Sprintf("%d", span.Context().TraceID())
 		}
 	}
 	if input.IdempotencyKey == "" {
@@ -93,7 +94,7 @@ func NewSQSPublisher(ctx context.Context, queueURL string) (*SQSPublisher, error
 
 // PublishEvent publishes an event to EventBridge
 func (p *EventBridgePublisher) PublishEvent(ctx context.Context, input EventInput) error {
-	p.ensureTraceAndIdempotencyKey(&input)
+	p.ensureTraceAndIdempotencyKey(ctx, &input)
 
 	eventDetail := struct {
 		Metadata EventMetadata `json:"metadata"`
@@ -109,7 +110,7 @@ func (p *EventBridgePublisher) PublishEvent(ctx context.Context, input EventInpu
 	}
 
 	_, err = p.client.PutEvents(ctx, &eventbridge.PutEventsInput{
-		Entries: []eventbridge.PutEventsRequestEntry{
+		Entries: []types.PutEventsRequestEntry{
 			{
 				EventBusName: aws.String(p.eventBusName),
 				Source:       aws.String(input.Source),
@@ -124,7 +125,7 @@ func (p *EventBridgePublisher) PublishEvent(ctx context.Context, input EventInpu
 
 // PublishEvent publishes an event to SQS
 func (p *SQSPublisher) PublishEvent(ctx context.Context, input EventInput) error {
-	p.ensureTraceAndIdempotencyKey(&input)
+	p.ensureTraceAndIdempotencyKey(ctx, &input)
 
 	event := struct {
 		DetailType string        `json:"detail-type"`
