@@ -2,6 +2,7 @@ package mqueue
 
 import (
 	"context"
+	"io"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
@@ -11,20 +12,21 @@ import (
 func TestMultiHandlers(t *testing.T) {
 	ctx := context.Background()
 	check := checker(t)
-	kc := kinesis.New(kinesis.Options{
+	kc := NewKinesisHandler(KinesisOption{StreamName: "mercury"}, kinesis.New(kinesis.Options{
 		HTTPClient: nopClient,
 		Region:     "us-west-2",
-	})
-	eb := eventbridge.New(eventbridge.Options{
+	}))
+	eb := NewEventBridgeHandler(eventbridge.New(eventbridge.Options{
 		HTTPClient: nopClient,
 		Region:     "us-west-2",
-	})
+	}))
+	jh := NewJSONHandler(io.Discard)
 
-	c := NewSequenceHandlers(NewKinesisHandler(KinesisOption{StreamName: "mercury"}, kc), NewEventBridgeHandler(eb))
+	c := NewSequenceHandlers(kc, eb, jh)
 	err := c.Handle(ctx, Record{})
 	check(err)
 
-	c = NewFanOutHandlers(NewKinesisHandler(KinesisOption{StreamName: "mercury"}, kc), NewKinesisHandler(KinesisOption{StreamName: "venus"}, kc))
+	c = NewFanOutHandlers(kc, eb, jh)
 	err = c.Handle(ctx, Record{})
 	check(err)
 }
