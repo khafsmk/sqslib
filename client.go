@@ -12,7 +12,7 @@ import (
 // Client is a frontend that callers will use to publish events.
 type Client struct {
 	Name    string
-	handler Handler
+	Handler Handler
 
 	timeNow func() time.Time
 	newUUID func() string
@@ -23,7 +23,7 @@ func (c *Client) publish(ctx context.Context, input any) error {
 		ctx = context.Background()
 	}
 	record := c.newRecord(ctx, c.Name, input)
-	return c.handler.Handle(ctx, record)
+	return c.Handler.Handle(ctx, record)
 }
 
 // Publish publishes an event to the backend queue.
@@ -46,7 +46,7 @@ func New(name string, h Handler) *Client {
 	}
 	return &Client{
 		Name:    name,
-		handler: h,
+		Handler: h,
 		timeNow: time.Now,
 		newUUID: uuid.NewString,
 	}

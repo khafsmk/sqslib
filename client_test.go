@@ -56,7 +56,7 @@ func TestDefaultHandler(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Client{
-				handler: h,
+				Handler: h,
 				timeNow: nowf,
 				newUUID: uuidf,
 			}
