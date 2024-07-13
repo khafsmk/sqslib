@@ -13,6 +13,7 @@ import (
 type Client struct {
 	Name    string
 	handler Handler
+
 	timeNow func() time.Time
 	newUUID func() string
 }
@@ -39,13 +40,13 @@ func init() {
 }
 
 // New initializes a new client with the given publisher.
-func New(name string, p Handler) *Client {
-	if p == nil {
-		panic("nil publisher")
+func New(name string, h Handler) *Client {
+	if h == nil {
+		panic("nil handler")
 	}
 	return &Client{
 		Name:    name,
-		handler: p,
+		handler: h,
 		timeNow: time.Now,
 		newUUID: uuid.NewString,
 	}
