@@ -7,14 +7,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Handler is the interface that wraps the basic Handle method.
+// NewSequenceHandlers returns the new handler that will emit sequently to multiple handlers.
 func NewSequenceHandlers(handlers ...Handler) *multiHandler {
 	return &multiHandler{
 		handlers: handlers,
 	}
 }
 
-// NewFanInHandlers returns a new handler that will fan-in the records to the given handlers.
+// NewFanOutHandlers returns a new handler that will fan-out the records to multiple handlers.
 func NewFanOutHandlers(handlers ...Handler) *multiHandler {
 	return &multiHandler{
 		handlers:    handlers,

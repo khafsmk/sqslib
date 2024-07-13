@@ -10,6 +10,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
+// NewEventBridgeHandler returns a new EventBridge handler.
 func NewEventBridgeHandler(client *eventbridge.Client) *EventBridgeHandler {
 	return &EventBridgeHandler{
 		client: client,
