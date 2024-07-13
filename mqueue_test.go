@@ -21,7 +21,7 @@ func TestMQueueTest(t *testing.T) {
 	t.Log(buf.String())
 }
 
-func checkPublished(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
+func checkRecord(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
 	t.Helper()
 	got := new(mqueue.Record)
 	err := json.Unmarshal(buf.Bytes(), got)
@@ -33,12 +33,6 @@ func checkPublished(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
 		t.Errorf("unexpected write (-want +got):\n%s", diff)
 	}
 	buf.Reset()
-}
-func check(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestSetDefault(t *testing.T) {
@@ -52,16 +46,23 @@ func TestSetDefault(t *testing.T) {
 
 	err := mqueue.Publish(map[string]string{"a": "1"})
 	check(t, err)
-	checkPublished(t, &buf, &mqueue.Record{
+	checkRecord(t, &buf, &mqueue.Record{
 		Source: name,
 		Data:   map[string]any{"a": "1"},
 	})
 
 	err = mqueue.PublishContext(context.Background(), map[string]string{"b": "2"})
 	check(t, err)
-	checkPublished(t, &buf, &mqueue.Record{
+	checkRecord(t, &buf, &mqueue.Record{
 		Source: name,
 		Data:   map[string]any{"b": "2"},
 	})
 
+}
+
+func check(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
