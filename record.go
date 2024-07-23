@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -25,6 +26,12 @@ func (c *Client) newRecord(ctx context.Context, source string, data any) Record 
 	var traceID string
 	if span, ok := tracer.SpanFromContext(ctx); ok {
 		traceID = fmt.Sprintf("%d", span.Context().TraceID())
+	}
+	if c.timeNow == nil {
+		c.timeNow = time.Now
+	}
+	if c.newUUID == nil {
+		c.newUUID = uuid.NewString
 	}
 	return Record{
 		Data:           data,

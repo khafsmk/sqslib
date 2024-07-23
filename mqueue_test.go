@@ -13,7 +13,8 @@ import (
 
 func TestMQueueTest(t *testing.T) {
 	var buf bytes.Buffer
-	client := mqueue.New("facility-service", mqueue.NewJSONHandler(&buf))
+	h := mqueue.NewJSONHandler(&buf)
+	client := &mqueue.Client{Handler: h}
 	err := client.Publish(context.Background(), map[string]string{"key": "value"})
 	if err != nil {
 		t.Fatal(err)
@@ -38,8 +39,10 @@ func checkRecord(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
 func TestSetDefault(t *testing.T) {
 	var buf bytes.Buffer
 	currentHandler := mqueue.Default()
-	name := "test-service"
-	mqueue.SetDefault(mqueue.New(name, mqueue.NewJSONHandler(&buf)))
+	serviceName := "test-service"
+	client := mqueue.New("", "", serviceName, mqueue.NewJSONHandler(&buf))
+	mqueue.SetDefault(client)
+
 	t.Cleanup(func() {
 		mqueue.SetDefault(currentHandler)
 	})
@@ -47,14 +50,14 @@ func TestSetDefault(t *testing.T) {
 	err := mqueue.Publish(map[string]string{"a": "1"})
 	check(t, err)
 	checkRecord(t, &buf, &mqueue.Record{
-		Source: name,
+		Source: serviceName,
 		Data:   map[string]any{"a": "1"},
 	})
 
 	err = mqueue.PublishContext(context.Background(), map[string]string{"b": "2"})
 	check(t, err)
 	checkRecord(t, &buf, &mqueue.Record{
-		Source: name,
+		Source: serviceName,
 		Data:   map[string]any{"b": "2"},
 	})
 }
