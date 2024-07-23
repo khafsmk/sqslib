@@ -42,15 +42,20 @@ func NewFanOutHandlers(handlers ...Handler) *MultiHandler
 func NewSequenceHandlers(handlers ...Handler) *MultiHandler
 ```
 
-## The caller uses this API by
+## The caller calls this lib
 
 ```go
 package main
 func main() {
-	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.FSAWSConfig, mqueue.LocalStackConfig
 
+	var (
+		squadName   = "squad"
+		serviceName = "service"
+		domain      = "domain"
+	)
+	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
+	client := mqueue.New(domain, squadName, serviceName, h)
 
-	client := mqueue.New("facility-service", h)
 	input := map[string]string{"key": "value"}
 	err := client.Publish(context.Background(), input)
 	if err != nil {
@@ -66,11 +71,16 @@ func main() {
 ```
 
 
-## How to test this client 
+## Testing
 
 It's simple to implements the Handler for testing.
+
 ```go
 package main
+
+import (
+	mq "github.com/khafsmk/mqueue"
+)
 
 func TestClient(t *testing.T) {
 	client := &mq.Client{
