@@ -22,7 +22,7 @@ func ExampleClient() {
 	// ...
 
 	input := map[string]string{"key": "value"}
-	err := client.Publish(context.Background(), input)
+	err := client.Publish(context.Background(), mqueue.EventLoanCreate, input)
 	if err != nil {
 		panic(err)
 	}

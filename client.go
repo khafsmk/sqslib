@@ -2,7 +2,9 @@ package mqueue
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"slices"
 	"sync/atomic"
 	"time"
 
@@ -20,17 +22,20 @@ type Client struct {
 	newUUID func() string
 }
 
-func (c *Client) publish(ctx context.Context, input any) error {
+func (c *Client) publish(ctx context.Context, event Event, input any) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	record := c.newRecord(ctx, c.ServiceName, input)
+	record := c.newRecord(ctx, c.ServiceName, event, input)
 	return c.Handler.Handle(ctx, record)
 }
 
 // Publish publishes an event to the backend queue.
-func (c *Client) Publish(ctx context.Context, input any) error {
-	return c.publish(ctx, input)
+func (c *Client) Publish(ctx context.Context, event Event, input any) error {
+	if !slices.Contains(AllEvents, event) {
+		return fmt.Errorf("unknown event: %s", event)
+	}
+	return c.publish(ctx, event, input)
 }
 
 var defaultClient atomic.Pointer[Client]
@@ -97,11 +102,11 @@ func SetDefault(c *Client) {
 }
 
 // Publish writes an event to the default publisher.
-func Publish(input any) error {
-	return Default().publish(context.Background(), input)
+func Publish(event Event, input any) error {
+	return Default().publish(context.Background(), event, input)
 }
 
 // PublishContext publishes an event to the default publisher with context.
-func PublishContext(ctx context.Context, input any) error {
-	return Default().publish(ctx, input)
+func PublishContext(ctx context.Context, event Event, input any) error {
+	return Default().publish(ctx, event, input)
 }

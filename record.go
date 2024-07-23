@@ -19,10 +19,11 @@ type Record struct {
 	SequenceID         string    `json:"sequence_id,omitempty"`
 	TenantID           string    `json:"tenant_id,omitempty"`
 	DataClassification string    `json:"data_classification,omitempty"`
+	EventName          string    `json:"event_name,omitempty"`
 	Data               any       `json:"data"`
 }
 
-func (c *Client) newRecord(ctx context.Context, source string, data any) Record {
+func (c *Client) newRecord(ctx context.Context, source string, event Event, data any) Record {
 	var traceID string
 	if span, ok := tracer.SpanFromContext(ctx); ok {
 		traceID = fmt.Sprintf("%d", span.Context().TraceID())
@@ -36,6 +37,7 @@ func (c *Client) newRecord(ctx context.Context, source string, data any) Record 
 	return Record{
 		Data:           data,
 		Source:         source,
+		EventName:      string(event),
 		Time:           c.timeNow().UTC(),
 		TraceID:        traceID,
 		IdempotencyKey: c.newUUID(),

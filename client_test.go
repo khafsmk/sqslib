@@ -2,7 +2,6 @@ package mqueue
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -11,8 +10,6 @@ import (
 )
 
 func TestDefaultHandler(t *testing.T) {
-	ctx := context.Background()
-
 	var buf bytes.Buffer
 	h := NewJSONHandler(&buf)
 
@@ -35,21 +32,32 @@ func TestDefaultHandler(t *testing.T) {
 	cases := []struct {
 		name    string
 		value   any
+		event   Event
 		want    Record
 		wantErr bool
 	}{
 		{
+			name:    "unknown event",
+			value:   map[string]string{"key": "value"},
+			event:   Event("unknown"),
+			wantErr: true,
+		},
+		{
 			name:  "map",
 			value: map[string]string{"key": "value"},
+			event: EventLoanCreate,
 			want: Record{
-				Data: map[string]string{"key": "value"},
+				EventName: string(EventLoanCreate),
+				Data:      map[string]string{"key": "value"},
 			},
 		},
 		{
 			name:  "struct",
 			value: struct{ Key string }{Key: "value"},
+			event: EventLoanCreate,
 			want: Record{
-				Data: map[string]string{"Key": "value"},
+				EventName: string(EventLoanCreate),
+				Data:      map[string]string{"Key": "value"},
 			},
 		},
 	}
@@ -60,14 +68,17 @@ func TestDefaultHandler(t *testing.T) {
 				timeNow: nowf,
 				newUUID: uuidf,
 			}
-			err := p.Publish(ctx, tc.value)
-			if tc.wantErr && err == nil {
-				t.Fatalf("expected error for %t", tc.value)
+			err := p.Publish(nil, tc.event, tc.value)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error for %t", tc.value)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				check(tc.want)
 			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			check(tc.want)
 		})
 	}
 }

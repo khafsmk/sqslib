@@ -14,7 +14,7 @@ func TestHandlerFunc(t *testing.T) {
 			return nil
 		}),
 	}
-	err := client.Publish(context.Background(), map[string]string{"key": "value"})
+	err := client.Publish(context.Background(), mq.EventLoanCreate, map[string]string{"key": "value"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -24,7 +24,7 @@ func TestMQueueTest(t *testing.T) {
 	var buf bytes.Buffer
 	h := mq.NewJSONHandler(&buf)
 	client := &mq.Client{Handler: h}
-	err := client.Publish(context.Background(), map[string]string{"key": "value"})
+	err := client.Publish(context.Background(), mq.EventLoanCreate, map[string]string{"key": "value"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestSetDefault(t *testing.T) {
 		}),
 		mq.WithServiceName(serviceName),
 		mq.WithDomain("test-domain"),
-		mq.WithDomain("test-domain"),
+		mq.WithSquadName("squad-name"),
 	)
 	mq.SetDefault(client)
 
@@ -48,10 +48,10 @@ func TestSetDefault(t *testing.T) {
 		mq.SetDefault(currentHandler)
 	})
 
-	err := mq.Publish(map[string]string{"a": "1"})
+	err := mq.Publish(mq.EventLoanUpdate, map[string]string{"a": "1"})
 	check(t, err)
 
-	err = mq.PublishContext(context.Background(), map[string]string{"b": "2"})
+	err = mq.PublishContext(context.Background(), mq.EventLoanCreate, map[string]string{"b": "2"})
 	check(t, err)
 }
 
