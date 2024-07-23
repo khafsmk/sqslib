@@ -8,13 +8,25 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/khafsmk/mqueue"
+	mq "github.com/khafsmk/mqueue"
 )
+
+func TestHandlerFunc(t *testing.T) {
+	client := &mq.Client{
+		Handler: mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
+			return nil
+		}),
+	}
+	err := client.Publish(context.Background(), map[string]string{"key": "value"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
 
 func TestMQueueTest(t *testing.T) {
 	var buf bytes.Buffer
-	h := mqueue.NewJSONHandler(&buf)
-	client := &mqueue.Client{Handler: h}
+	h := mq.NewJSONHandler(&buf)
+	client := &mq.Client{Handler: h}
 	err := client.Publish(context.Background(), map[string]string{"key": "value"})
 	if err != nil {
 		t.Fatal(err)
@@ -22,15 +34,15 @@ func TestMQueueTest(t *testing.T) {
 	t.Log(buf.String())
 }
 
-func checkRecord(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
+func checkRecord(t *testing.T, buf *bytes.Buffer, want *mq.Record) {
 	t.Helper()
-	got := new(mqueue.Record)
+	got := new(mq.Record)
 	err := json.Unmarshal(buf.Bytes(), got)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if diff := cmp.Diff(want, got, cmpopts.IgnoreFields(mqueue.Record{}, "IdempotencyKey", "Time")); diff != "" {
+	if diff := cmp.Diff(want, got, cmpopts.IgnoreFields(mq.Record{}, "IdempotencyKey", "Time")); diff != "" {
 		t.Errorf("unexpected write (-want +got):\n%s", diff)
 	}
 	buf.Reset()
@@ -38,25 +50,25 @@ func checkRecord(t *testing.T, buf *bytes.Buffer, want *mqueue.Record) {
 
 func TestSetDefault(t *testing.T) {
 	var buf bytes.Buffer
-	currentHandler := mqueue.Default()
+	currentHandler := mq.Default()
 	serviceName := "test-service"
-	client := mqueue.New("", "", serviceName, mqueue.NewJSONHandler(&buf))
-	mqueue.SetDefault(client)
+	client := mq.New("", "", serviceName, mq.NewJSONHandler(&buf))
+	mq.SetDefault(client)
 
 	t.Cleanup(func() {
-		mqueue.SetDefault(currentHandler)
+		mq.SetDefault(currentHandler)
 	})
 
-	err := mqueue.Publish(map[string]string{"a": "1"})
+	err := mq.Publish(map[string]string{"a": "1"})
 	check(t, err)
-	checkRecord(t, &buf, &mqueue.Record{
+	checkRecord(t, &buf, &mq.Record{
 		Source: serviceName,
 		Data:   map[string]any{"a": "1"},
 	})
 
-	err = mqueue.PublishContext(context.Background(), map[string]string{"b": "2"})
+	err = mq.PublishContext(context.Background(), map[string]string{"b": "2"})
 	check(t, err)
-	checkRecord(t, &buf, &mqueue.Record{
+	checkRecord(t, &buf, &mq.Record{
 		Source: serviceName,
 		Data:   map[string]any{"b": "2"},
 	})
