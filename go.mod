@@ -3,8 +3,11 @@ module github.com/khafsmk/mqueue
 go 1.22.4
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.20.3
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.18.4
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.24.4
+	github.com/aws/smithy-go v1.14.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	golang.org/x/sync v0.3.0
@@ -20,12 +23,10 @@ require (
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
 	github.com/DataDog/sketches-go v1.4.5 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.20.3 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.40 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.1.3 // indirect
-	github.com/aws/smithy-go v1.14.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.6.0-alpha.5 // indirect

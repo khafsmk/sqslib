@@ -57,7 +57,6 @@ func TestSetDefault(t *testing.T) {
 		Source: name,
 		Data:   map[string]any{"b": "2"},
 	})
-
 }
 
 func check(t *testing.T, err error) {

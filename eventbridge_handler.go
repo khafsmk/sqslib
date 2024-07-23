@@ -5,15 +5,20 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
 	"github.com/aws/smithy-go/ptr"
 )
 
 // NewEventBridgeHandler returns a new EventBridge handler.
-func NewEventBridgeHandler(client *eventbridge.Client) *EventBridgeHandler {
+// It's better to allow the client to test by exposing the eventbridge.Options
+// testing by HTTPClient is better than using extra libraries for mocking it.
+// This is also good for using with localstack. See the all_test.go
+func NewEventBridgeHandler(busName string, config aws.Config, optFns ...func(*eventbridge.Options)) *EventBridgeHandler {
 	return &EventBridgeHandler{
-		client: client,
+		BusName: busName,
+		client:  eventbridge.NewFromConfig(config, optFns...),
 	}
 }
 
