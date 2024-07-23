@@ -54,7 +54,12 @@ func main() {
 		domain      = "domain"
 	)
 	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
-	client := mqueue.New(domain, squadName, serviceName, h)
+	client := mqueue.New(
+		h,
+		mqueue.WithSquadName(squadName), // optional
+		mqueue.WithServiceName(serviceName), // optional
+		mqueue.WithDomain(domain), // optional
+	)
 
 	input := map[string]string{"key": "value"}
 	err := client.Publish(context.Background(), input)
@@ -70,10 +75,21 @@ func main() {
 }
 ```
 
-
 ## Testing
 
-It's simple to implements the Handler for testing.
+It's simple to implements the Handler for testing. You can turn the Client into
+the fake struct without mocking it.
+
+Source: (fakes vs mocks by Martin
+Fowler)[https://martinfowler.com/articles/mocksArentStubs.html]
+
+Fake: objects actually have working implementations, but usually take some
+shortcut which makes them not suitable for production (an in memory database is
+a good example).
+
+Mocks: are what we are talking about here: objects pre-programmed with
+expectations which form a specification of the calls they are expected to
+receive.
 
 ```go
 package main

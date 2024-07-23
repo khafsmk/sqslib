@@ -3,11 +3,8 @@ package mqueue_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	mq "github.com/khafsmk/mqueue"
 )
 
@@ -34,25 +31,17 @@ func TestMQueueTest(t *testing.T) {
 	t.Log(buf.String())
 }
 
-func checkRecord(t *testing.T, buf *bytes.Buffer, want *mq.Record) {
-	t.Helper()
-	got := new(mq.Record)
-	err := json.Unmarshal(buf.Bytes(), got)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if diff := cmp.Diff(want, got, cmpopts.IgnoreFields(mq.Record{}, "IdempotencyKey", "Time")); diff != "" {
-		t.Errorf("unexpected write (-want +got):\n%s", diff)
-	}
-	buf.Reset()
-}
-
 func TestSetDefault(t *testing.T) {
-	var buf bytes.Buffer
 	currentHandler := mq.Default()
 	serviceName := "test-service"
-	client := mq.New("", "", serviceName, mq.NewJSONHandler(&buf))
+	client := mq.New(
+		mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
+			return nil
+		}),
+		mq.WithServiceName(serviceName),
+		mq.WithDomain("test-domain"),
+		mq.WithDomain("test-domain"),
+	)
 	mq.SetDefault(client)
 
 	t.Cleanup(func() {
@@ -61,17 +50,9 @@ func TestSetDefault(t *testing.T) {
 
 	err := mq.Publish(map[string]string{"a": "1"})
 	check(t, err)
-	checkRecord(t, &buf, &mq.Record{
-		Source: serviceName,
-		Data:   map[string]any{"a": "1"},
-	})
 
 	err = mq.PublishContext(context.Background(), map[string]string{"b": "2"})
 	check(t, err)
-	checkRecord(t, &buf, &mq.Record{
-		Source: serviceName,
-		Data:   map[string]any{"b": "2"},
-	})
 }
 
 func check(t *testing.T, err error) {

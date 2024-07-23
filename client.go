@@ -35,25 +35,53 @@ func (c *Client) Publish(ctx context.Context, input any) error {
 
 var defaultClient atomic.Pointer[Client]
 
-const (
-	emptyName    = "no-name"
-	emptySquad   = "no-squad"
-	emptyService = "no-service"
-)
-
 func init() {
-	defaultClient.Store(New(emptyName, emptySquad, emptyService, NewJSONHandler(io.Discard)))
+	defaultClient.Store(New(NewJSONHandler(io.Discard)))
+}
+
+type ClientOption struct {
+	SquadName   string
+	ServiceName string
+	Domain      string
+}
+
+type ClientOptionFn func(*ClientOption)
+
+// WithSquadName sets the squad name for the client.
+func WithSquadName(name string) ClientOptionFn {
+	return func(o *ClientOption) {
+		o.SquadName = name
+	}
+}
+
+// WithServiceName sets the service name for the client.
+func WithServiceName(name string) ClientOptionFn {
+	return func(o *ClientOption) {
+		o.ServiceName = name
+	}
+}
+
+// WithDomain sets the domain for the client.
+func WithDomain(domain string) ClientOptionFn {
+	return func(o *ClientOption) {
+		o.Domain = domain
+	}
 }
 
 // New initializes a new client with the given publisher.
-func New(domain, squad, service string, h Handler) *Client {
+func New(h Handler, fns ...ClientOptionFn) *Client {
 	if h == nil {
 		panic("nil handler")
 	}
+
+	conf := &ClientOption{}
+	for _, fn := range fns {
+		fn(conf)
+	}
 	return &Client{
-		SquadName:   squad,
-		ServiceName: service,
-		Domain:      domain,
+		SquadName:   conf.ServiceName,
+		ServiceName: conf.ServiceName,
+		Domain:      conf.Domain,
 		Handler:     h,
 		timeNow:     time.Now,
 		newUUID:     uuid.NewString,

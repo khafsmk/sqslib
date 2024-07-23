@@ -12,7 +12,12 @@ func ExampleClient() {
 		serviceName = "service"
 		domain      = "domain"
 	)
-	client := mqueue.New(domain, squadName, serviceName, mqueue.NewEventBridgeHandler("bus-name", mqueue.FSAWSConfig))
+	client := mqueue.New(
+		mqueue.NewEventBridgeHandler("bus-name", mqueue.FSAWSConfig),
+		mqueue.WithSquadName(squadName),
+		mqueue.WithServiceName(serviceName),
+		mqueue.WithDomain(domain),
+	)
 
 	// ...
 
