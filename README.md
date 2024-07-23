@@ -12,23 +12,34 @@ var MSMConfig = func() aws.Config { ... }()
 func Publish(input any) error
 func PublishContext(ctx context.Context, input any) error
 func SetDefault(c *Client)
-func NewFanOutHandlers(handlers ...Handler) *multiHandler
-func NewSequenceHandlers(handlers ...Handler) *multiHandler
+
+
+type Record struct{ ... }
 
 type Client struct{ ... }
     func Default() *Client
     func New(name string, h Handler) *Client
-type EventBridgeHandler struct{ ... }
-    func NewEventBridgeHandler(busname string, config aws.Config, optFns ...func(*eventbridge.Options)) *EventBridgeHandler
+
 type Handler interface{ ... }
-type JSONHandler struct{ ... }
-    func NewJSONHandler(w io.Writer) *JSONHandler
+
+// It's better to allow the client to test by exposing the aws.Config
+// testing by HTTPClient is better than using extra libraries for mocking it.
+// This is also good for using with unit testing and development environment such as local stack
+// See the all_test.go
+type EventBridgeHandler struct{ ... }
+    func NewEventBridgeHandler(busName string, config aws.Config, optFns ...func(*eventbridge.Options)) *EventBridgeHandler
+
 type KinesisHandler struct{ ... }
     func NewKinesisHandler(streamName string, config aws.Config, optFns ...func(*kinesis.Options)) *KinesisHandler
-type Record struct{ ... }
-type SQSHandler struct{ ... }
-    func NewSQSHandler(queueURL string, cfg aws.Config, optFns ...func(*sqs.Options)) *SQSHandler
 
+type SQSHandler struct{ ... }
+    func NewSQSHandler(queueURL string, config aws.Config, optFns ...func(*sqs.Options)) *SQSHandler
+
+type JSONHandler struct{ ... }
+    func NewJSONHandler(w io.Writer) *JSONHandler
+
+func NewFanOutHandlers(handlers ...Handler) *MultiHandler
+func NewSequenceHandlers(handlers ...Handler) *MultiHandler
 ```
 
 ## The caller uses this API by
