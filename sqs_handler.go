@@ -10,6 +10,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 )
 
+// NewSQSHandler returns a new SQS handler.
+// It's better to allow the client to test by exposing the eventbridge.Options
+// testing by HTTPClient is better than using extra libraries for mocking it.
+// This is also good for using with localstack.
 func NewSQSHandler(queueURL string, cfg aws.Config, optFns ...func(*sqs.Options)) *SQSHandler {
 	return &SQSHandler{
 		QueueURL: queueURL,
