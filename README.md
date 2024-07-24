@@ -65,6 +65,15 @@ type SQSHandler struct{ ... }
 	func NewSQSHandler(queueURL string, config aws.Config, optFns ...func(*sqs.Options)) *SQSHandler
 ```
 
+## Preconfiguration environment
+
+```go
+var FSAWSConfig = func() aws.Config { ... }()
+var LocalStackConfig = func() aws.Config { ... }()
+var MKAWSConfig = func() aws.Config { ... }()
+var MSMConfig = func() aws.Config { ... }()
+```
+
 ## Testing
 
 It's simple to implements the Handler for testing. You can turn the Client into
