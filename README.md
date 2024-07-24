@@ -1,4 +1,4 @@
-# A quick code
+# A quick demo
 
 ```go
 package main
