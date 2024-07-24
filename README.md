@@ -149,6 +149,7 @@ func NewSequenceHandlers(handlers ...Handler) *MultiHandler
 
 ```go
 package main
+
 func main() {
 
 	var (
