@@ -1,7 +1,5 @@
 # Design
 
-The record types
-
 The `mqueue` package contains three main types:
 
 1. `Client` is the frontend, providing output methods like `Publish`.
