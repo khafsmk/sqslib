@@ -1,3 +1,37 @@
+# A quick code
+
+```go
+package main
+
+func main() {
+
+	var (
+		squadName   = "squad"
+		serviceName = "service"
+		domain      = "domain"
+	)
+	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
+	client := mqueue.New(
+		h,
+		mqueue.WithSquadName(squadName), // optional
+		mqueue.WithServiceName(serviceName), // optional
+		mqueue.WithDomain(domain), // optional
+	)
+
+	input := map[string]string{"key": "value"}
+	err := client.Publish(context.Background(), input)
+	if err != nil {
+		panic(err)
+	}
+
+	// or we can set the default client to avoid passing the client around
+	mqueue.SetDefault(client)
+	mqueue.Publish(input)
+	// or with context
+	mqueue.PublishContext(context.Background(), input)
+}
+```
+
 # Design
 
 The `mqueue` package contains three main types:
@@ -154,36 +188,3 @@ func NewFanOutHandlers(handlers ...Handler) *MultiHandler
 func NewSequenceHandlers(handlers ...Handler) *MultiHandler
 ```
 
-## The caller calls this lib
-
-```go
-package main
-
-func main() {
-
-	var (
-		squadName   = "squad"
-		serviceName = "service"
-		domain      = "domain"
-	)
-	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
-	client := mqueue.New(
-		h,
-		mqueue.WithSquadName(squadName), // optional
-		mqueue.WithServiceName(serviceName), // optional
-		mqueue.WithDomain(domain), // optional
-	)
-
-	input := map[string]string{"key": "value"}
-	err := client.Publish(context.Background(), input)
-	if err != nil {
-		panic(err)
-	}
-
-	// or we can set the default client to avoid passing the client around
-	mqueue.SetDefault(client)
-	mqueue.Publish(input)
-	// or with context
-	mqueue.PublishContext(context.Background(), input)
-}
-```
