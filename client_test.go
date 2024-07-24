@@ -2,6 +2,7 @@ package mqueue
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -11,7 +12,9 @@ import (
 
 func TestDefaultHandler(t *testing.T) {
 	var buf bytes.Buffer
-	h := NewJSONHandler(&buf)
+	h := HandlerFunc(func(ctx context.Context, record Record) error {
+		return json.NewEncoder(&buf).Encode(record)
+	})
 
 	nowf := func() time.Time { return time.Time{} }
 	uuidf := func() string { return "" }
@@ -68,7 +71,7 @@ func TestDefaultHandler(t *testing.T) {
 				timeNow: nowf,
 				newUUID: uuidf,
 			}
-			err := p.Publish(nil, tc.event, tc.value)
+			err := p.Publish(context.TODO(), tc.event, tc.value)
 			if tc.wantErr {
 				if err == nil {
 					t.Fatalf("expected error for %t", tc.value)

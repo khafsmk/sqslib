@@ -2,7 +2,6 @@ package mqueue
 
 import (
 	"context"
-	"io"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,13 +23,15 @@ func TestMultiHandlers(t *testing.T) {
 		HTTPClient: nopClient,
 		Region:     "us-west-2",
 	})
-	jh := NewJSONHandler(io.Discard)
+	fake := HandlerFunc(func(ctx context.Context, r Record) error {
+		return nil
+	})
 
-	c := NewSequenceHandlers(kc, eb, jh, sq)
+	c := NewSequenceHandlers(kc, eb, fake, sq)
 	err := c.Handle(ctx, Record{})
 	check(err)
 
-	c = NewFanOutHandlers(kc, eb, jh)
+	c = NewFanOutHandlers(kc, eb, fake)
 	err = c.Handle(ctx, Record{})
 	check(err)
 }
