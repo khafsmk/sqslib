@@ -2,7 +2,7 @@
 
 - Provide predefined configurations for many environments (localstack, FS, MK cluster) while maintaining flexibility for DevOps to add configurations.
 - Support multiple scenarios and AWS clients.
-- High performance. This library is used in many services, where even one memory allocation can matter significantly.
+- High performance, zero memory allocation. This library is used in many services, where even one memory allocation can matter significantly.
 - Use fakes over mocks for testing, inspired by the standard library from [http/client](https://github.com/golang/go/blob/master/src/net/http/client.go#L61-L77)
   and [aws client](https://github.com/aws/aws-sdk-go-v2/blob/4509a600408280c8dcdbc6825ba750cf1628423d/service/kinesis/options.go#L115)
 
@@ -204,7 +204,7 @@ Benchmark results:
 goos: darwin
 goarch: arm64
 pkg: github.com/khafsmk/mqueue
-BenchmarkClient-8        1894783               628.2 ns/op            64 B/op          2 allocs/op
+BenchmarkClient-8       18567264                63.70 ns/op            0 B/op          0 allocs/op
 PASS
-ok      github.com/khafsmk/mqueue       2.152s
+ok      github.com/khafsmk/mqueue       2.101s
 ```

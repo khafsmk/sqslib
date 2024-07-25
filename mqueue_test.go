@@ -61,20 +61,3 @@ func check(t *testing.T, err error) {
 		t.Fatal(err)
 	}
 }
-
-func BenchmarkClient(b *testing.B) {
-	b.ReportAllocs()
-	c := mq.New(
-		mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
-			return nil
-		}),
-	)
-	ctx := context.Background()
-	input := map[string]string{"key": "value"}
-	for i := 0; i < b.N; i++ {
-		err := c.Publish(ctx, mq.EventLoanCreate, input)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}

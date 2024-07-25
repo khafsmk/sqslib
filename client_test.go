@@ -67,3 +67,21 @@ func TestDefaultHandler(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkClient(b *testing.B) {
+	b.ReportAllocs()
+	c := &Client{
+		Handler: HandlerFunc(func(ctx context.Context, record Record) error {
+			return nil
+		}),
+		newUUID: func() string { return "" },
+	}
+	ctx := context.Background()
+	input := map[string]string{"key": "value"}
+	for i := 0; i < b.N; i++ {
+		err := c.Publish(ctx, EventLoanCreate, input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
