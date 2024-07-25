@@ -1,9 +1,7 @@
 package mqueue
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -11,26 +9,8 @@ import (
 )
 
 func TestDefaultHandler(t *testing.T) {
-	var buf bytes.Buffer
-	h := HandlerFunc(func(ctx context.Context, record Record) error {
-		return json.NewEncoder(&buf).Encode(record)
-	})
-
 	nowf := func() time.Time { return time.Time{} }
 	uuidf := func() string { return "" }
-
-	check := func(want Record) {
-		t.Helper()
-		b, err := json.Marshal(want)
-		if err != nil {
-			t.Fatal(err)
-		}
-		got := buf.Bytes()
-		if diff := cmp.Diff(b, got, transformJSON); diff != "" {
-			t.Errorf("unexpected write (-want +got):\n%s", diff)
-		}
-		buf.Reset()
-	}
 
 	cases := []struct {
 		name    string
@@ -60,27 +40,29 @@ func TestDefaultHandler(t *testing.T) {
 			event: EventLoanCreate,
 			want: Record{
 				EventName: string(EventLoanCreate),
-				Data:      map[string]string{"Key": "value"},
+				Data:      struct{ Key string }{Key: "value"},
 			},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Client{
-				Handler: h,
+				Handler: HandlerFunc(func(ctx context.Context, r Record) error {
+					if diff := cmp.Diff(r, tc.want); diff != "" {
+						t.Errorf("diff record: %s", diff)
+					}
+					return nil
+				}),
 				timeNow: nowf,
 				newUUID: uuidf,
 			}
+
 			err := p.Publish(context.TODO(), tc.event, tc.value)
-			if tc.wantErr {
-				if err == nil {
-					t.Fatalf("expected error for %t", tc.value)
-				}
-			} else {
-				if err != nil {
-					t.Fatalf("unexpected error: %v", err)
-				}
-				check(tc.want)
+			if tc.wantErr && err == nil {
+				t.Fatalf("want error for %t", tc.value)
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 		})
 	}
