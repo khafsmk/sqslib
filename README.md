@@ -189,9 +189,7 @@ func main() {
 
 ## High performance
 
-This library is optimized for low memory usage, with only two memory allocations occurring during UUID generation.
-
-To benchmark the performance, use the following command:
+This library is optimized for zero memory usage. To benchmark the performance, use the following command:
 
 
 ```
