@@ -1,38 +1,13 @@
-# A quick demo
+# Goals
 
-```go
-package main
+- Provide predefined configurations for many environments (localstack, FS, MK cluster) while maintaining flexibility for DevOps to add configurations.
+- Support multiple scenarios and AWS clients.
+- High performance. This library is used in many services, where even one memory allocation can matter significantly.
+- Use fakes over mocks for testing, inspired by the standard library from [http/client](https://github.com/golang/go/blob/master/src/net/http/client.go#L61-L77)
+  and [aws client](https://github.com/aws/aws-sdk-go-v2/blob/4509a600408280c8dcdbc6825ba750cf1628423d/service/kinesis/options.go#L115)
 
-func main() {
 
-	var (
-		squadName   = "squad"
-		serviceName = "service"
-		domain      = "domain"
-	)
-	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
-	client := mqueue.New(
-		h,
-		mqueue.WithSquadName(squadName), // optional
-		mqueue.WithServiceName(serviceName), // optional
-		mqueue.WithDomain(domain), // optional
-	)
-
-	input := map[string]string{"key": "value"}
-	err := client.Publish(context.Background(), input)
-	if err != nil {
-		panic(err)
-	}
-
-	// or we can set the default client to avoid passing the client around
-	mqueue.SetDefault(client)
-	mqueue.Publish(input)
-	// or with context
-	mqueue.PublishContext(context.Background(), input)
-}
-```
-
-# Design
+## Design
 
 The `mqueue` package contains three main types:
 
@@ -111,18 +86,8 @@ var MSMConfig = func() aws.Config { ... }()
 ## Testing
 
 It's simple to implements the Handler for testing. You can turn the Client into
-the fake struct without mocking it.
+the fake struct without mocking it. [Further reading for fake and mock](https://martinfowler.com/articles/mocksArentStubs.html)
 
-Source: (fakes vs mocks by Martin
-Fowler)[https://martinfowler.com/articles/mocksArentStubs.html]
-
-Fake: objects actually have working implementations, but usually take some
-shortcut which makes them not suitable for production (an in memory database is
-a good example).
-
-Mocks: are what we are talking about here: objects pre-programmed with
-expectations which form a specification of the calls they are expected to
-receive.
 
 ```go
 package main
@@ -188,3 +153,58 @@ func NewFanOutHandlers(handlers ...Handler) *MultiHandler
 func NewSequenceHandlers(handlers ...Handler) *MultiHandler
 ```
 
+## The caller calls this lib
+
+```go
+package main
+func main() {
+
+	var (
+		squadName   = "squad"
+		serviceName = "service"
+		domain      = "domain"
+	)
+	h := mqueue.NewEventBridgeHandler("bus-name", mqueue.MKAWSConfig) // or mqueue.LocalStackConfig
+	client := mqueue.New(
+		h,
+		mqueue.WithSquadName(squadName), // optional
+		mqueue.WithServiceName(serviceName), // optional
+		mqueue.WithDomain(domain), // optional
+	)
+
+	input := map[string]string{"key": "value"}
+	err := client.Publish(context.Background(), input)
+	if err != nil {
+		panic(err)
+	}
+
+	// or we can set the default client to avoid passing the client around
+	mqueue.SetDefault(client)
+	mqueue.Publish(input)
+	// or with context
+	mqueue.PublishContext(context.Background(), input)
+}
+```
+
+
+## High performance
+
+This library is optimized for low memory usage, with only two memory allocations occurring during UUID generation.
+
+To benchmark the performance, use the following command:
+
+
+```
+go test -bench=. -benchmem ./... -cpuprofile=cpu.out -memprofile=mem.out
+```
+
+Benchmark results:
+
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/khafsmk/mqueue
+BenchmarkClient-8        1894783               628.2 ns/op            64 B/op          2 allocs/op
+PASS
+ok      github.com/khafsmk/mqueue       2.152s
+```
