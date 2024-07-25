@@ -7,6 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
+func checker(t *testing.T) func(err error) {
+	return func(err error) {
+		if err != nil {
+			t.Helper()
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestMultiHandlers(t *testing.T) {
 	ctx := context.Background()
 	check := checker(t)
