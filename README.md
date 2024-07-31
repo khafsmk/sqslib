@@ -6,7 +6,6 @@
 - Use fakes over mocks for testing, inspired by the standard library from [http/client](https://github.com/golang/go/blob/master/src/net/http/client.go#L61-L77)
   and [aws client](https://github.com/aws/aws-sdk-go-v2/blob/4509a600408280c8dcdbc6825ba750cf1628423d/service/kinesis/options.go#L115)
 
-
 ## Design
 
 The `mqueue` package contains three main types:
@@ -87,7 +86,6 @@ var MSMConfig = func() aws.Config { ... }()
 
 It's simple to implements the Handler for testing. You can turn the Client into
 the fake struct without mocking it. [Further reading for fake and mock](https://martinfowler.com/articles/mocksArentStubs.html)
-
 
 ```go
 package main
@@ -173,24 +171,21 @@ func main() {
 	)
 
 	input := map[string]string{"key": "value"}
-	err := client.Publish(context.Background(), input)
+	err := client.Publish(context.Background(), mqueue.EventLoanCreate, input)
 	if err != nil {
 		panic(err)
 	}
 
 	// or we can set the default client to avoid passing the client around
 	mqueue.SetDefault(client)
-	mqueue.Publish(input)
+	mqueue.Publish(mqueue.EventLoanCreate, input)
 	// or with context
-	mqueue.PublishContext(context.Background(), input)
 }
 ```
-
 
 ## High performance
 
 This library is optimized for zero memory usage. To benchmark the performance, use the following command:
-
 
 ```
 go test -bench=. -benchmem ./... -cpuprofile=cpu.out -memprofile=mem.out
