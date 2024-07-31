@@ -94,6 +94,11 @@ import (
 	mq "github.com/khafsmk/mqueue"
 )
 
+type YourService struct {
+    // other clients
+    Client *mq.Client
+}
+
 func TestClient(t *testing.T) {
 	client := &mq.Client{
 		Handler: mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
@@ -104,6 +109,13 @@ func TestClient(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
+
+    // or you can use the client
+    svc := &YourService{
+        Client: client,
+    }
+    svc.DoStuff()
 }
 ```
 
