@@ -96,20 +96,20 @@ import (
 
 type YourService struct {
     // other clients
+    // ...
     Client *mq.Client
 }
 
 func TestClient(t *testing.T) {
-	client := &mq.Client{
-		Handler: mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
-			return nil
-		}),
-	}
-	err := client.Publish(context.Background(), map[string]string{"key": "value"})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
+    client := &mq.Client{
+        Handler: mq.HandlerFunc(func(ctx context.Context, record mq.Record) error {
+            return nil
+        }),
+    }
+    err := client.Publish(context.Background(), map[string]string{"key": "value"})
+    if err != nil {
+        t.Fatalf(err)
+    }
 
     // or you can use the client
     svc := &YourService{
